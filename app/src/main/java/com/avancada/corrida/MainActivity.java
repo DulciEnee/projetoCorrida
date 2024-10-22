@@ -28,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Car> cars;
     private int carImage = R.drawable.carro1;  // Substitua com o PNG do carro
     private Track track;
+    private RaceManager raceManager;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
 
         //Inicializa lista de carros
         cars = new ArrayList<>();
+
+        // Inicializa CarMovement
+        // Inicializar o RaceManager, passando o layout e a pista
+        raceManager = new RaceManager(mainLayout, track);
 
         // Adicionar o listener ao mainLayout para garantir que o layout está pronto
         mainLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -73,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!carCountStr.isEmpty()) {
                     int carCount = Integer.parseInt(carCountStr);
                     Log.e("Namain", "N de carros: " + carCount);
-                    addCarsToTrack(carCount);
+                    raceManager.addCarsToTrack(carCount);
                     Log.e("Namain", "Adicionou carro");
                 } else {
                     Toast.makeText(MainActivity.this, "Por favor, insira um número de carros", Toast.LENGTH_SHORT).show();
@@ -85,62 +92,21 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            Log.e("Namain", "Clicou no botão pause");
-
-            // Inicia a movimentação dos carros
-            for (Car car : cars) {
-                car.startMoving();
-            }
+                raceManager.startRace();  // Usar RaceManager para iniciar a corrida
             }
         });
 
         pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("Namain", "Clicou no botão pause");
-
-                // Inicia a movimentação dos carros
-                for (Car car : cars) {
-                    car.stopMoving();
-                }
+                raceManager.pauseRace();  // Usar RaceManager para pausar a corrida
             }
         });
 
         finishButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("Namain", "Clicou no botão Finish");
-
-                // Parar a movimentação dos carros
-                for (Car car : cars) {
-                    car.stopMoving();
-                }
-
-                // Exibir uma mensagem de fim da corrida
-                Toast.makeText(MainActivity.this, "Fim da corrida", Toast.LENGTH_LONG).show();
-
-                // Encontrar o carro com o maior score (distance - penalty)
-                Car winner = null;
-                int highestScore = 0;
-
-                for (Car car : cars) {
-                    int score = car.getDistance() - car.getPenalty(); // Calcular o score
-                    if (score > highestScore) {
-                        highestScore = score;
-                        winner = car; // Atualizar o vencedor
-                    }
-                }
-
-                // Se houver um vencedor, exibir o nome do carro
-                if (winner != null) {
-                    String winnerMessage = "O vencedor é " + winner.getName() + " com pontuação: " + highestScore;
-                    Toast.makeText(MainActivity.this, winnerMessage, Toast.LENGTH_LONG).show();
-                    Log.e("Namain", winnerMessage);
-                } else {
-                    // Caso não tenha nenhum carro
-                    Toast.makeText(MainActivity.this, "Nenhum carro participou da corrida", Toast.LENGTH_LONG).show();
-                    Log.e("Namain", "Nenhum carro participou da corrida");
-                }
+                raceManager.finishRace();  // Usar RaceManager para finalizar a corrida
             }
         });
     }
@@ -149,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         Log.e("Namain", "Metodo addCarsToTrack: ");
 
         for (int i = 0; i < carCount; i++) {
-            ImageView existingImageView = findViewById(R.id.imageView);
+            //ImageView existingImageView = findViewById(R.id.imageView);
 
             // Gera nome dinâmico para o carro
             String carName = "carro" + (i + 1);
@@ -160,13 +126,38 @@ public class MainActivity extends AppCompatActivity {
             Log.e("Namain", "Carro adicionado: " + carName);
 
             // Posiciona o carro na pista
-            if (carro.getImageView().getParent() != null) {
-                ((ViewGroup) carro.getImageView().getParent()).removeView(carro.getImageView());
-            }
-            mainLayout.addView(carro.getImageView());
+            //if (carro.getImageView().getParent() != null) {
+            //    ((ViewGroup) carro.getImageView().getParent()).removeView(carro.getImageView());
+            //}
+            //mainLayout.addView(carro.getImageView());
             // Chamar setPosition após o ImageView ter sido adicionado ao layout
             carro.setPosition(550 , 1060 + (i * 50));
+            // Adicionar o carro ao gerenciador de movimentação
+            //carMovement.addCar(car);
         }
+
+        /*private void determineWinner() {
+            Car winner = null;
+            int highestScore = 0;
+
+            for (Car car : cars) {
+                int score = car.getDistance() - car.getPenalty(); // Calcular o score
+                if (score > highestScore) {
+                    highestScore = score;
+                    winner = car; // Atualizar o vencedor
+                }
+            }
+
+            if (winner != null) {
+                String winnerMessage = "O vencedor é " + winner.getName() + " com pontuação: " + highestScore;
+                Toast.makeText(MainActivity.this, winnerMessage, Toast.LENGTH_LONG).show();
+                Log.e("Namain", winnerMessage);
+            } else {
+                Toast.makeText(MainActivity.this, "Nenhum carro participou da corrida", Toast.LENGTH_LONG).show();
+                Log.e("Namain", "Nenhum carro participou da corrida");
+            }
+        }*/
+
     }
 }
 

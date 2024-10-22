@@ -33,10 +33,7 @@ public class CarMovement {
     }
 
     private void moveCar() {
-        final Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
+
                 if (isMoving) {
                     // Atualiza as leituras do sensor
                     updateSensorReadings();
@@ -56,13 +53,12 @@ public class CarMovement {
                         car.incrementPenalty();
                         stopMoving();
                     }
+                    car.incrementDistance();  // Atualiza a distância percorrida
 
-                    handler.postDelayed(this, 10);
                 }
-            }
-        };
-        handler.post(runnable);
     }
+
+
 
     // Métodos auxiliares para movimentação, leitura de sensor e colisão
     private void updateSensorReadings() {
@@ -197,8 +193,5 @@ public class CarMovement {
             Log.e("moveCar", "Nenhuma direção disponível, resetando direção.");
             lastDirection = 0; // Reseta a direção para tentar novamente
         }
-
-        car.incrementDistance();  // Atualiza a distância percorrida
     }
-
 }

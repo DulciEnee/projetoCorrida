@@ -9,6 +9,7 @@ public class CarView extends View {
     private Bitmap carBitmap;
     private int positionX;
     private int positionY;
+    private float rotationAngle = 0;
 
     public CarView(Context context, Bitmap carBitmap, int posX, int posY) {
         super(context);
@@ -31,10 +32,19 @@ public class CarView extends View {
         return positionY;
     }
 
+    public void setRotation(float angle) {
+        this.rotationAngle = angle;
+    }
+
+
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         // Desenha o bitmap na posição especificada
+        // Rotaciona o Canvas no centro do carro
+        canvas.rotate(rotationAngle, positionX + carBitmap.getWidth() / 2, positionY + carBitmap.getHeight() / 2);
+
         canvas.drawBitmap(carBitmap, positionX, positionY, null);
     }
 
@@ -55,5 +65,9 @@ public class CarView extends View {
         // Verifica se o pixel não é transparente ou branco
         return pixelColor != 0xFFFFFFFF; // Retorna true se não for branco
     }
+
+    public void rotateAngle(float angle){
+
+    };
 
 }
