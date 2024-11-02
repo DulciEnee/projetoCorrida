@@ -3,20 +3,17 @@ package com.avancada.corrida;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 
-
 public class MainActivity extends AppCompatActivity {
 
-    //Elementos de interface
+    // Elementos da interface
     private EditText carCountEditText;
     private Button startButton;
     private Button pauseButton;
@@ -24,20 +21,18 @@ public class MainActivity extends AppCompatActivity {
     private Button addButton;
     private FrameLayout mainLayout;
 
-    //Carro e pista
+    // Carros e pista
     private ArrayList<Car> cars;
-    private int carImage = R.drawable.carro1;  // Substitua com o PNG do carro
+    private int carImage = R.drawable.carro1; // Imagem do carro
     private Track track;
     private RaceManager raceManager;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Configura os componentes da interface
+        // Configuração dos componentes da interface
         carCountEditText = findViewById(R.id.editTextCarCount);
         addButton = findViewById(R.id.buttonAdd);
         startButton = findViewById(R.id.buttonStart);
@@ -45,120 +40,72 @@ public class MainActivity extends AppCompatActivity {
         finishButton = findViewById(R.id.buttonFinish);
         mainLayout = findViewById(R.id.main);
 
-        // Carregar a pista a partir de uma imagem
+        // Inicializa a pista a partir de uma imagem
         track = new Track(this, R.drawable.pista);
 
-        //Inicializa lista de carros
+        // Inicializa a lista de carros e o RaceManager
         cars = new ArrayList<>();
+        raceManager = new RaceManager(this, mainLayout, track);
 
-        // Inicializa CarMovement
-        // Inicializar o RaceManager, passando o layout e a pista
-        raceManager = new RaceManager(mainLayout, track);
-
-        // Adicionar o listener ao mainLayout para garantir que o layout está pronto
+        // Listener para capturar o tamanho do layout após o carregamento
         mainLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-
-                // Remova o listener após a primeira execução para evitar múltiplas chamadas
                 mainLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                // DEPURAÇÃO: Checando tamanho do layout
                 int layoutWidth = mainLayout.getWidth();
                 int layoutHeight = mainLayout.getHeight();
-                Log.e("Namain", "mainLayout width: " + layoutWidth + ", height: " + layoutHeight);
+                Log.e("MainActivity", "Layout width: " + layoutWidth + ", height: " + layoutHeight);
             }
         });
 
-        // Adicionar listeners para os botões
+        // Configuração dos botões com listeners para ações
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("Namain", "Clicou no botao start");
-                String carCountStr = carCountEditText.getText().toString();
-                Log.e("Namain", "Tem carro na fila: " + !carCountStr.isEmpty());
-                if (!carCountStr.isEmpty()) {
-                    int carCount = Integer.parseInt(carCountStr);
-                    Log.e("Namain", "N de carros: " + carCount);
-                    raceManager.addCarsToTrack(carCount);
-                    Log.e("Namain", "Adicionou carro");
-                } else {
-                    Toast.makeText(MainActivity.this, "Por favor, insira um número de carros", Toast.LENGTH_SHORT).show();
-                    Log.e("Namain", "Número de carros não foi informado");
-                }
+                addCarsButtonAction();
             }
         });
 
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                raceManager.startRace();  // Usar RaceManager para iniciar a corrida
+                raceManager.startRace();
             }
         });
 
         pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                raceManager.pauseRace();  // Usar RaceManager para pausar a corrida
+                raceManager.pauseRace();
             }
         });
 
         finishButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                raceManager.finishRace();  // Usar RaceManager para finalizar a corrida
+                raceManager.finishRace();
             }
         });
     }
 
-    private void addCarsToTrack(int carCount) {
-        Log.e("Namain", "Metodo addCarsToTrack: ");
+    //Adiciona carros à pista conforme a quantidade especificada no campo de entrada.
 
-        for (int i = 0; i < carCount; i++) {
-            //ImageView existingImageView = findViewById(R.id.imageView);
-
-            // Gera nome dinâmico para o carro
-            String carName = "carro" + (i + 1);
-
-            // Cria carros
-            Car carro = new Car(this, mainLayout, carImage, 50, 50 * (i + 1), track, carName, cars);
-            cars.add(carro);  // Adicionar o carro na lista
-            Log.e("Namain", "Carro adicionado: " + carName);
-
-            // Posiciona o carro na pista
-            //if (carro.getImageView().getParent() != null) {
-            //    ((ViewGroup) carro.getImageView().getParent()).removeView(carro.getImageView());
-            //}
-            //mainLayout.addView(carro.getImageView());
-            // Chamar setPosition após o ImageView ter sido adicionado ao layout
-            carro.setPosition(550 , 1060 + (i * 50));
-            // Adicionar o carro ao gerenciador de movimentação
-            //carMovement.addCar(car);
-        }
-
-        /*private void determineWinner() {
-            Car winner = null;
-            int highestScore = 0;
-
-            for (Car car : cars) {
-                int score = car.getDistance() - car.getPenalty(); // Calcular o score
-                if (score > highestScore) {
-                    highestScore = score;
-                    winner = car; // Atualizar o vencedor
-                }
-            }
-
-            if (winner != null) {
-                String winnerMessage = "O vencedor é " + winner.getName() + " com pontuação: " + highestScore;
-                Toast.makeText(MainActivity.this, winnerMessage, Toast.LENGTH_LONG).show();
-                Log.e("Namain", winnerMessage);
+    private void addCarsButtonAction() {
+        try {
+            String carCountStr = carCountEditText.getText().toString();
+            if (!carCountStr.isEmpty()) {
+                int carCount = Integer.parseInt(carCountStr);
+                raceManager.addCarsToTrack(carCount);
+                Log.e("MainActivity", "Adicionou " + carCount + " carros na pista.");
             } else {
-                Toast.makeText(MainActivity.this, "Nenhum carro participou da corrida", Toast.LENGTH_LONG).show();
-                Log.e("Namain", "Nenhum carro participou da corrida");
+                Toast.makeText(this, "Por favor, insira um número de carros", Toast.LENGTH_SHORT).show();
+                Log.e("MainActivity", "Número de carros não foi informado");
             }
-        }*/
-
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Número inválido de carros", Toast.LENGTH_SHORT).show();
+            Log.e("MainActivity", "Erro ao parsear o número de carros: " + e.getMessage());
+        } catch (Exception e) {
+            Log.e("MainActivity", "Erro ao adicionar carros: " + e.getMessage());
+        }
     }
 }
-
-

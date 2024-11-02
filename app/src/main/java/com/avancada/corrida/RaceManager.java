@@ -1,37 +1,44 @@
 package com.avancada.corrida;
 
-import android.view.ViewGroup;
+import android.content.Context;
+import android.util.Log;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+import android.widget.Toast;
+
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 public class RaceManager {
-    private FrameLayout mainLayout;
-    private Track track;
-    private ArrayList<Car> cars;
+    private FrameLayout mainLayout;       // Layout principal da corrida
+    private Track track;                  // Pista da corrida
+    private ArrayList<Car> cars;          // Lista de carros participantes
+    private Context context;              // Contexto para acesso de recursos
+    private static final Semaphore trackSemaphore = new Semaphore(1);  // Semáforo para controle de acesso à faixa exclusiva
 
-    public RaceManager(FrameLayout mainLayout, Track track) {
+
+    // Construtor RaceManager, inicializa o layout e define os limites da faixa exclusiva.
+
+    public RaceManager(Context context, FrameLayout mainLayout, Track track) {
         this.mainLayout = mainLayout;
         this.track = track;
         this.cars = new ArrayList<>();
+        this.context = context;
     }
+
+    //Adiciona carros à pista e define suas posições iniciais.
 
     public void addCarsToTrack(int carCount) {
         for (int i = 0; i < carCount; i++) {
             String carName = "carro" + (i + 1);
 
-            // Cria o carro
+            // Cria o carro e define a posição inicial
             Car car = new Car(mainLayout.getContext(), mainLayout, R.drawable.carro1, 50, 50 * (i + 1), track, carName, cars);
             cars.add(car);  // Adiciona o carro à lista de carros
-
-            // Posiciona o carro na pista
-            /*if (car.getImageView().getParent() != null) {
-                ((ViewGroup) car.getImageView().getParent()).removeView(car.getImageView());
-            }
-            mainLayout.addView(car.getImageView());*/
-            car.setPosition(550, 1060 + (i * 50));
+            car.setPosition(550, 1060 + (i * 50));  // Posição inicial na pista
         }
     }
+
+    // Inicia o movimento de todos os carros na pista.
 
     public void startRace() {
         for (Car car : cars) {
@@ -39,11 +46,15 @@ public class RaceManager {
         }
     }
 
+    // Pausa o movimento de todos os carros na pista.
+
     public void pauseRace() {
         for (Car car : cars) {
             car.stopMoving();  // Para o movimento de cada carro
         }
     }
+
+    //Finaliza a corrida, determina o vencedor e exibe o resultado.
 
     public void finishRace() {
         for (Car car : cars) {
@@ -65,9 +76,18 @@ public class RaceManager {
         // Exibir o vencedor
         if (winner != null) {
             String winnerMessage = "O vencedor é " + winner.getName() + " com pontuação: " + highestScore;
-            // Exibir uma mensagem ou fazer log do vencedor
+            Toast.makeText(context, winnerMessage, Toast.LENGTH_LONG).show();
+            Log.e("RaceManager", winnerMessage);
         } else {
-            // Caso nenhum carro tenha participado
+            // Caso não tenha nenhum carro
+            Toast.makeText(context, "Nenhum carro participou da corrida", Toast.LENGTH_LONG).show();
+            Log.e("RaceManager", "Nenhum carro participou da corrida");
         }
+    }
+
+    //Retorna o semáforo de controle de acesso à faixa exclusiva.
+
+    public static Semaphore getTrackSemaphore() {
+        return trackSemaphore;
     }
 }

@@ -3,18 +3,13 @@ package com.avancada.corrida;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 
 public class Car implements Runnable {
     private String name;
@@ -25,74 +20,107 @@ public class Car implements Runnable {
     private ImageView imageView;
     private CarView carView;
     private Map<Integer, Integer> sensor;
-    private int sensorRange = 45; // Tamanho do sensor (d) em pixels
-    private Track track;  // A pista na qual o carro está
+    private int sensorRange = 45; // Tamanho do sensor em pixels
+    private Track track;  // Referência à pista
     private Bitmap carBitmap;
     private ArrayList<Car> cars;
     private boolean isRunning = false;
-    private long moveInterval = 100; // Intervalo de tempo entre movimentos em milissegundos
+    private long moveInterval = 50; // Intervalo entre movimentos em milissegundos
+    private CarMovement carMovement;
+
+    // Construtor da classe Car. Inicializa os atributos e adiciona a imagem do carro ao layout.
 
     public Car(Context context, FrameLayout layout, int carImage, int posX, int posY, Track track, String name, ArrayList<Car> cars) {
-        imageView = new ImageView(context);
-        // Carregar o Bitmap do carro a partir do recurso
-        Bitmap originalBitmap = BitmapFactory.decodeResource(context.getResources(), carImage);
-        // Redimensionar o Bitmap para o mesmo tamanho que o ImageView
-        carBitmap = Bitmap.createScaledBitmap(originalBitmap, 40, 40, true);
-
-        // Criar o CarView e adicionar ao layout
-        carView = new CarView(context, carBitmap, posX, posY);
-        layout.addView(carView);
-
+        this.name = name;
         this.positionX = posX;
         this.positionY = posY;
-        this.name = name;
-        sensor = new HashMap<>();
         this.track = track;
         this.cars = cars;
+        this.sensor = new HashMap<>();
+
+        try {
+            // Carregar o Bitmap do carro a partir do recurso
+            Bitmap originalBitmap = BitmapFactory.decodeResource(context.getResources(), carImage);
+            carBitmap = Bitmap.createScaledBitmap(originalBitmap, 40, 40, true);
+            carView = new CarView(context, carBitmap, posX, posY);
+            layout.addView(carView);
+
+            carMovement = new CarMovement(this, track, cars, sensor, sensorRange);
+        } catch (Exception e) {
+            Log.e("Car", "Erro ao inicializar o carro: " + e.getMessage());
+        }
     }
 
     @Override
     public void run() {
         isRunning = true;
         while (isRunning) {
-            moveCar(); // Lógica de movimentação do carro
-            try {
-                Thread.sleep(moveInterval); // Espera entre movimentos
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (isRunning && isInExclusiveTrack(positionX, positionY)) {
+                try {
+                    RaceManager.getTrackSemaphore().acquire();
+                    Log.d("Semaphore", "Semáforo adquirido por " + name);
+
+                    while (isRunning && isInExclusiveTrack(positionX, positionY)) {
+                        moveCar();
+                        Thread.sleep(moveInterval);
+                    }
+
+                } catch (InterruptedException e) {
+                    Log.e("Car", "Movimento interrompido: " + e.getMessage());
+                } finally {
+                    RaceManager.getTrackSemaphore().release();
+                    Log.d("Semaphore", "Semáforo liberado por " + name);
+                }
+            } else {
+                moveCar();
+                try {
+                    Thread.sleep(moveInterval);
+                } catch (InterruptedException e) {
+                    Log.e("Car", "Movimento interrompido fora da faixa exclusiva: " + e.getMessage());
+                }
             }
         }
     }
 
-    public void moveCar() {
-        if (canMove()) {
-            // Adicione sua lógica de movimentação aqui
-            positionX += 5; // Exemplo de movimentação simples
-            carView.setPosition(positionX, positionY);
-            incrementDistance();
-        }
+    // Verifica se o carro está na faixa exclusiva da pista.
+
+    private boolean isInExclusiveTrack(int x, int y) {
+        return (x > 437 && x < 634) && (y > 188 && y < 377);
     }
 
+    //Move o carro chamando a lógica de movimento de CarMovement.
+
+    public void moveCar() {
+        carMovement.startMoving();
+    }
+
+    //Verifica se o carro pode se mover para a posição atual na pista.
+
     public boolean canMove() {
-        // Adicione a lógica de verificação se o carro pode se mover
         return track.isInTrack(positionX, positionY);
     }
 
+    //Inicia o movimento do carro em uma nova thread.
+
     public void startMoving() {
         isRunning = true;
-        new Thread(this).start(); // Inicia a execução do carro em uma nova thread
+        new Thread(this).start();
     }
+
+    //Para o movimento do carro e chama a lógica de parada de CarMovement.
 
     public void stopMoving() {
         isRunning = false;
+        carMovement.stopMoving();
     }
 
-    // Métodos auxiliares, getters e setters continuam os mesmos...
+    //Rotaciona a imagem do carro para um determinado ângulo.
 
     public void rotateCar(float angle) {
         carView.setRotation(angle);
     }
 
+    //
     public int getDistanceToObstacle(double angle) {
         int deltaX = (int) (sensorRange * Math.cos(Math.toRadians(angle)));
         int deltaY = (int) (sensorRange * Math.sin(Math.toRadians(angle)));
@@ -106,20 +134,22 @@ public class Car implements Runnable {
             }
 
             for (Car otherCar : cars) {
-                if (!this.equals(otherCar)) {
-                    if (otherCar.carView.isInCar(checkX, checkY)) {
-                        Log.d("Sensor", "Colisão com outro carro detectada na posição: (" + checkX + ", " + checkY + ")");
-                        return d;
-                    }
+                if (!this.equals(otherCar) && otherCar.carView.isInCar(checkX, checkY)) {
+                    Log.d("Sensor", "Colisão com outro carro detectada na posição: (" + checkX + ", " + checkY + ")");
+                    return d;
                 }
             }
         }
         return sensorRange;
     }
 
+    //Verifica se houve colisão com outro carro.
+
     public boolean checkCollision(Car otherCar) {
         return this.positionX == otherCar.positionX && this.positionY == otherCar.positionY;
     }
+
+    // Métodos auxiliares, getters e setters
 
     public void setPosition(int x, int y) {
         this.positionX = x;

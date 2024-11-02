@@ -5,11 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.View;
 
+// Classe responsável pela visualização do carro na tela,
+// representada como um Bitmap rotacionável e movível.
 public class CarView extends View {
     private Bitmap carBitmap;
     private int positionX;
     private int positionY;
     private float rotationAngle = 0;
+
+    // Construtor para inicializar a visão do carro com o Bitmap e posição inicial.
 
     public CarView(Context context, Bitmap carBitmap, int posX, int posY) {
         super(context);
@@ -18,6 +22,7 @@ public class CarView extends View {
         this.positionY = posY;
     }
 
+    // Define a nova posição do carro na tela.
     public void setPosition(int x, int y) {
         this.positionX = x;
         this.positionY = y;
@@ -32,42 +37,51 @@ public class CarView extends View {
         return positionY;
     }
 
+    //Define o ângulo de rotação do carro.
     public void setRotation(float angle) {
         this.rotationAngle = angle;
     }
 
-
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        // Desenha o bitmap na posição especificada
-        // Rotaciona o Canvas no centro do carro
-        canvas.rotate(rotationAngle, positionX + carBitmap.getWidth() / 2, positionY + carBitmap.getHeight() / 2);
 
-        canvas.drawBitmap(carBitmap, positionX, positionY, null);
+        // Rotaciona o Canvas no centro do carro e desenha o Bitmap na posição especificada.
+        try {
+            canvas.rotate(rotationAngle, positionX + carBitmap.getWidth() / 2f, positionY + carBitmap.getHeight() / 2f);
+            canvas.drawBitmap(carBitmap, positionX, positionY, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    //Verifica se um ponto específico está dentro dos limites do carro,
+
     public boolean isInCar(int x, int y) {
-        // Verifica se o ponto está dentro dos limites do bitmap do carro
+        // Verifica se o ponto está fora dos limites do bitmap do carro.
         if (x < positionX || x >= positionX + carBitmap.getWidth() ||
                 y < positionY || y >= positionY + carBitmap.getHeight()) {
-            return false; // Ponto está fora do carro
+            return false;
         }
 
-        // Coordenadas relativas dentro do bitmap
+        // Calcula as coordenadas relativas dentro do bitmap.
         int relativeX = x - positionX;
         int relativeY = y - positionY;
 
-        // Verificar a cor do pixel na posição relativa do bitmap do carro
-        int pixelColor = carBitmap.getPixel(relativeX, relativeY);
-
-        // Verifica se o pixel não é transparente ou branco
-        return pixelColor != 0xFFFFFFFF; // Retorna true se não for branco
+        try {
+            // Obtém a cor do pixel na posição relativa dentro do bitmap.
+            int pixelColor = carBitmap.getPixel(relativeX, relativeY);
+            return pixelColor != 0xFFFFFFFF; // Retorna true se o pixel não for branco.
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public void rotateAngle(float angle){
+    //Rotaciona o carro por um ângulo específico.
 
-    };
-
+    public void rotateAngle(float angle) {
+        this.rotationAngle += angle;
+        invalidate();
+    }
 }
