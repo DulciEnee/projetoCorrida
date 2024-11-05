@@ -32,7 +32,7 @@ public class CarMovement {
         isMoving = false;
     }
 
-    private void moveCar() {
+    public void moveCar() {
         if (isMoving) {
             updateSensorReadings();
 
@@ -52,7 +52,7 @@ public class CarMovement {
     }
 
     // Atualiza as leituras do sensor
-    private void updateSensorReadings() {
+    public void updateSensorReadings() {
         sensor.clear();
         for (int i = 0; i < 16; i++) {
             double angle = i * 22.5;
@@ -62,7 +62,7 @@ public class CarMovement {
     }
 
     // Lógica de movimentação baseada nas leituras do sensor
-    private void moveInDirection() {
+    public void moveInDirection() {
         boolean moved = false;
         Log.e("Sensor", "Leitura do sensor 0: " + sensor.get(0));
         Log.e("Sensor", "Leitura do sensor 2: " + sensor.get(2));

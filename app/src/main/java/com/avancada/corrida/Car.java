@@ -156,6 +156,9 @@ public class Car implements Runnable {
         this.positionY = y;
         carView.setPosition(x, y);
     }
+    public void setMoveInterval(long interval) {
+        this.moveInterval = interval;
+    }
 
     public void incrementDistance() {
         distance++;
@@ -187,5 +190,13 @@ public class Car implements Runnable {
 
     public int getDistance() {
         return distance;
+    }
+
+    public void setPenalty(int p) {
+        this.penalty = p;
+    }
+
+    public void setDistance(int d) {
+        this.distance = d;
     }
 }

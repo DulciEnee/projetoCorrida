@@ -28,7 +28,7 @@
             android:orientation="horizontal">
             <EditText
                 android:id="@+id/editTextCarCount"
-                android:layout_width="200dp"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10px"
                 android:layout_marginBottom="10px" />
@@ -41,7 +41,16 @@
                 android:layout_marginBottom="10px"
                 android:text="Adicionar carro" />
 
+            <Button
+                android:id="@+id/buttonAddEspecial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10px"
+                android:layout_marginBottom="10px"
+                android:text="Carro especial " />
+
         </LinearLayout>
+
 
         <Button
             android:id="@+id/buttonStart"

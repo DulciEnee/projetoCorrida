@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private Button pauseButton;
     private Button finishButton;
     private Button addButton;
+    private Button addEspcialCarButton;
     private FrameLayout mainLayout;
 
     // Carros e pista
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         addButton = findViewById(R.id.buttonAdd);
         startButton = findViewById(R.id.buttonStart);
         pauseButton = findViewById(R.id.buttonPause);
+        addEspcialCarButton = findViewById(R.id.buttonAddEspecial);
         finishButton = findViewById(R.id.buttonFinish);
         mainLayout = findViewById(R.id.main);
 
@@ -63,6 +65,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 addCarsButtonAction();
+            }
+        });
+        addEspcialCarButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addEspecialCarsButtonAction();
             }
         });
 
@@ -106,6 +114,14 @@ public class MainActivity extends AppCompatActivity {
             Log.e("MainActivity", "Erro ao parsear o número de carros: " + e.getMessage());
         } catch (Exception e) {
             Log.e("MainActivity", "Erro ao adicionar carros: " + e.getMessage());
+        }
+    }
+    private void addEspecialCarsButtonAction() {
+        try {
+            raceManager.addEspecialCarsToTrack();
+            Log.e("MainActivity", "Adicionou carro na especial na pista.");
+        } catch (Exception e) {
+            Log.e("MainActivity", "Erro ao adicionar carro especial");
         }
     }
 }
